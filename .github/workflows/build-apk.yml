@@ -53,13 +53,15 @@ jobs:
           echo "Built libswe.so:"
           ls -la ../app/native/arm64-v8a/
 
-      - name: Download ephemeris data files
-       
-          cd app/native/ephe
-          curl -fO https://www.astro.com/ftp/swisseph/ephe/sepl_18.se1
-          curl -fO https://www.astro.com/ftp/swisseph/ephe/semo_18.se1
-          echo "Ephemeris files:"
-          ls -la
+      - name: Copy ephemeris data files
+        run: |
+          mkdir -p app/native/ephe
+          echo "Contents of sweph-src/ephe:"
+          ls sweph-src/ephe | head -30
+          cp sweph-src/ephe/sepl_18.se1 app/native/ephe/ 2>/dev/null || echo "sepl_18.se1 not found, check listing above"
+          cp sweph-src/ephe/semo_18.se1 app/native/ephe/ 2>/dev/null || echo "semo_18.se1 not found, check listing above"
+          echo "Ephemeris files copied:"
+          ls -la app/native/ephe/
 
       - name: Install Flet CLI
         run: pip install flet
@@ -73,4 +75,3 @@ jobs:
         with:
           name: bhoovalaya-oracle-apk
           path: app/build/apk/*.apk
-
