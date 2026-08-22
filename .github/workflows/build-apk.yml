@@ -54,8 +54,7 @@ jobs:
           ls -la ../app/native/arm64-v8a/
 
       - name: Download ephemeris data files
-        run: |
-          mkdir -p app/native/ephe
+       
           cd app/native/ephe
           curl -fO https://www.astro.com/ftp/swisseph/ephe/sepl_18.se1
           curl -fO https://www.astro.com/ftp/swisseph/ephe/semo_18.se1
