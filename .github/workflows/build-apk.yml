@@ -1,4 +1,3 @@
-cat > .github/workflows/build-apk.yml << 'EOF'
 name: Build Bhoovalaya Oracle APK (Flet + Swiss Ephemeris)
 
 on:
