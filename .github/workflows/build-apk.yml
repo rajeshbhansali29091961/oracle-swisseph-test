@@ -68,7 +68,7 @@ jobs:
 
       - name: Build APK
         working-directory: app
-        run: flet build apk --verbose
+        run: flet build apk --yes --verbose
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
