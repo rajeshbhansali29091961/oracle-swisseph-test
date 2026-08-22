@@ -1,0 +1,74 @@
+name: Build Bhoovalaya Oracle APK (Flet + Swiss Ephemeris)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install Android NDK
+        uses: nttld/setup-ndk@v1
+        id: setup-ndk
+        with:
+          ndk-version: r26d
+
+      - name: Clone Swiss Ephemeris C source
+        run: |
+          git clone https://github.com/aloistr/swisseph.git sweph-src
+
+      - name: Cross-compile libswe.so for arm64-v8a (Android)
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+        run: |
+          TOOLCHAIN=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64
+          CC=$TOOLCHAIN/bin/aarch64-linux-android24-clang
+
+          mkdir -p app/native/arm64-v8a
+          cd sweph-src/src
+
+          $CC -shared -fPIC -O2 -o ../../../app/native/arm64-v8a/libswe.so \
+            swedate.c swehouse.c swejpl.c swemmoon.c swemplan.c \
+            sweph.c swephlib.c swecl.c swehel.c \
+            -lm
+
+          echo "Built libswe.so:"
+          ls -la ../../../app/native/arm64-v8a/
+
+      - name: Download ephemeris data files
+        run: |
+          mkdir -p app/native/ephe
+          cd app/native/ephe
+          curl -O https://www.astro.com/ftp/swisseph/ephe/sepl_18.se1
+          curl -O https://www.astro.com/ftp/swisseph/ephe/semo_18.se1
+          echo "Ephemeris files:"
+          ls -la
+
+      - name: Install Flet CLI
+        run: pip install flet
+
+      - name: Build APK
+        working-directory: app
+        run: flet build apk --verbose
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bhoovalaya-oracle-apk
+          path: app/build/apk/*.apk
